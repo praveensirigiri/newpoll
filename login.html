@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1a5c88 0%, #15e3fa 100%);
+        }
+
+        .container {
+            background: #5badc8;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #0f0f0f;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #6a11cb;
+            box-shadow: 0 0 4px rgba(106, 17, 203, 0.4);
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #1a5c88, #15e3fa);
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .button:hover {
+            background: linear-gradient(135deg, #15e3fa, #1a5c88);
+        }
+
+        .toggle-link {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+
+        .toggle-link a {
+            color: #333;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .toggle-link a:hover {
+            color: #1a5c88;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login Form -->
+        <div id="login-form">
+            <h1>Login</h1>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="login-email">Email:</label>
+                    <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password:</label>
+                    <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+                </div>
+                <button type="submit" class="button">Login</button>
+            </form>
+            <div class="toggle-link">
+                <p>Don't have an account? <a href="#" onclick="showSignupForm()">Sign up</a></p>
+            </div>
+        </div>
+
+        <!-- Signup Form -->
+        <div id="signup-form" class="hidden">
+            <h1>Signup</h1>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signup-email">Email:</label>
+                    <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password:</label>
+                    <input type="password" id="signup-password" name="password" placeholder="Enter your password" required>
+                </div>
+                <div class="form-group">
+                    <label for="confirm-password">Confirm Password:</label>
+                    <input type="password" id="confirm-password" name="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+                <button type="submit" class="button">Sign up</button>
+            </form>
+            <div class="toggle-link">
+                <p>Already have an account? <a href="#" onclick="showLoginForm()">Login</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showSignupForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('signup-form').classList.remove('hidden');
+        }
+
+        function showLoginForm() {
+            document.getElementById('signup-form').classList.add('hidden');
+            document.getElementById('login-form').classList.remove('hidden');
+        }
+    </script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBwlfe2muBECkmG8JdIKMGuR9pmNSJUfPY",
+            authDomain: "rlogin-1a6b0.firebaseapp.com",
+            projectId: "rlogin-1a6b0",
+            storageBucket: "rlogin-1a6b0.appspot.com",
+            messagingSenderId: "1040735417034",
+            appId: "1:1040735417034:web:7555ccfffc987257d07a33"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        document.getElementById("signupForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const email = document.getElementById("signup-email").value;
+            const password = document.getElementById("signup-password").value;
+
+            createUserWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("User signed up:", userCredential.user);
+                    alert("Signup successful!");
+                    document.location.href="login.html";
+                })
+                .catch((error) => {
+                    console.error("Signup error:", error.code, error.message);
+                    alert(`Signup failed: ${error.message}`);
+                });
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const email = document.getElementById("login-email").value;
+            const password = document.getElementById("login-password").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    console.log("User logged in:", userCredential.user);
+                    document.location.href="poll login.html"                    
+                })
+                .catch((error) => {
+                    console.error("Login error:", error.code, error.message);
+                    alert(`Login failed: ${error.message}`);
+                });
+        });
+    </script>
+</body>
+</html>

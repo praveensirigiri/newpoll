@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Poll Platform</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #d2e5ed;
+            color: #333;
+        }
+
+        header {
+            background: linear-gradient(135deg, #15e3fa 0%, #1a5c88 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+
+        main {
+            padding: 20px;
+        }
+
+        #poll-creation, #poll-display {
+            background: linear-gradient(135deg, #1a5c88 0%, #15e3fa 100%);
+            padding: 30px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            max-width: 600px;
+        }
+
+        h2 {
+            color: #201f1f;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin-bottom: 10px;
+        }
+
+        li button {
+            width: 100%;
+            padding: 10px;
+            color: white;
+            background: linear-gradient(45deg, #4caf50, #007BFF);
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            text-align: left;
+            transition: transform 0.2s;
+        }
+
+        li button:hover {
+            transform: scale(1.02);
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #1a5c88, #15e3fa);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #15e3fa, #1a5c85   );
+        }
+
+        #results .bar-container {
+            position: relative;
+            height: 25px;
+            background: #f0f0f5;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        #results .bar {
+            height: 100%;
+            background: linear-gradient(90deg, #007BFF, #4caf50);
+            border-radius: 5px 0 0 5px;
+            text-align: right;
+            line-height: 25px;
+            color: white;
+            padding-right: 10px;
+            font-size: 14px;
+            transition: width 0.5s ease;
+        }
+
+        #poll-summary {
+            margin-top: 20px;
+            background: #e6f7ff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        footer {
+            text-align: center;
+            padding: 10px;
+            margin-top: 20px;
+            background: #333;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            main {
+                padding: 10px;
+            }
+
+            button, input {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Online Poll Platform</h1>
+    </header>
+
+    <main>
+        <section id="poll-creation">
+            <h2>Create a Poll</h2>
+            <form id="poll-form">
+                <label for="question">Poll Question:</label>
+                <input type="text" id="question" required placeholder="Enter your poll question">
+
+                <label for="options">Options (comma-separated):</label>
+                <input type="text" id="options" required placeholder="Option1, Option2, Option3">
+
+                <button type="submit">Create Poll</button>
+            </form>
+        </section>
+
+        <section id="poll-display" class="hidden">
+            <h2 id="poll-question"></h2>
+            <ul id="poll-options"></ul>
+            <div id="results"></div>
+            <div id="poll-summary" class="hidden">
+                <h3>Poll Summary</h3>
+                <p>Total Votes: <span id="total-votes">0</span></p>
+                <p>Most Voted Option: <span id="most-voted">N/A</span></p>
+            </div>
+            <button id="refresh-button">Refresh Poll</button>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 Online Poll Platform</p>
+    </footer>
+
+    <script>
+        const pollForm = document.getElementById('poll-form');
+        const pollDisplay = document.getElementById('poll-display');
+        const pollQuestionElement = document.getElementById('poll-question');
+        const pollOptionsElement = document.getElementById('poll-options');
+        const resultsElement = document.getElementById('results');
+        const totalVotesElement = document.getElementById('total-votes');
+        const mostVotedElement = document.getElementById('most-voted');
+        const pollSummary = document.getElementById('poll-summary');
+        const refreshButton = document.getElementById('refresh-button');
+
+        let pollData = { question: '', options: [], votes: [] };
+
+        pollForm.addEventListener('submit', event => {
+            event.preventDefault();
+
+            const question = document.getElementById('question').value.trim();
+            const options = document.getElementById('options').value
+                .split(',')
+                .map(opt => opt.trim())
+                .filter(opt => opt);
+
+            if (question && options.length > 1) {
+                pollData = {
+                    question,
+                    options,
+                    votes: new Array(options.length).fill(0),
+                };
+                displayPoll();
+            } else {
+                alert('Please provide a valid question and at least two options.');
+            }
+        });
+
+        function displayPoll() {
+            pollDisplay.classList.remove('hidden');
+            pollQuestionElement.textContent = pollData.question;
+            pollOptionsElement.innerHTML = pollData.options
+                .map((option, index) => `<li><button onclick="vote(${index})">${option}</button></li>`)
+                .join('');
+            updateResults();
+        }
+
+        function vote(index) {
+            pollData.votes[index]++;
+            updateResults();
+        }
+
+        function updateResults() {
+            const totalVotes = pollData.votes.reduce((a, b) => a + b, 0);
+            const mostVotedIndex = pollData.votes.indexOf(Math.max(...pollData.votes));
+            const mostVoted = totalVotes ? pollData.options[mostVotedIndex] : 'N/A';
+
+            totalVotesElement.textContent = totalVotes;
+            mostVotedElement.textContent = mostVoted;
+
+            resultsElement.innerHTML = pollData.options
+                .map((option, index) => {
+                    const percentage = totalVotes ? (pollData.votes[index] / totalVotes) * 100 : 0;
+                    return `
+                        <div>
+                            <div>${option}: ${percentage.toFixed(2)}% (${pollData.votes[index]} votes)</div>
+                            <div class="bar-container">
+                                <div class="bar" style="width: ${percentage}%;"></div>
+                            </div>
+                        </div>`;
+                })
+                .join('');
+
+            pollSummary.classList.remove('hidden');
+        }
+
+        refreshButton.addEventListener('click', () => {
+    // Hide the poll display and summary
+    pollDisplay.classList.add('hidden');
+    pollSummary.classList.add('hidden');
+    
+    // Reset the form for new input
+    pollForm.reset();
+    
+    // Clear poll data
+    pollData = { question: '', options: [], votes: [] };
+
+    // Clear the poll display section
+    pollQuestionElement.textContent = '';
+    pollOptionsElement.innerHTML = '';
+    resultsElement.innerHTML = '';
+    totalVotesElement.textContent = '0';
+    mostVotedElement.textContent = 'N/A';
+    
+    // Show the poll creation form
+    document.getElementById('poll-creation').style.display = 'block';
+
+    // Notify the user that the poll data has been cleared
+    alert('Poll data has been cleared. You can create a new poll.');
+});
+
+
+    </script>
+</body>
+</html>
